@@ -26,17 +26,16 @@ public class CircularHitBox extends HitBox {
 
 	@Override
 	public boolean isCollidingWith(HitBox other) {
-		//avoid duplicate logic
-		if(other.getType() == Type.POINT || other.getType() == Type.RECTANGULAR)
-			return other.isCollidingWith(this);
+		if(other.getType() == Type.POINT || other.getType() == Type.RECTANGULAR || other.getType() == Type.POLYGON)
+			return other.isCollidingWith(this); //avoids duplicate logic
 
-		//move the circles away from each others' centers
+		//two circles are colliding if the distance between their centers is less than the sum of their radii
 		if(other.getType() == Type.CIRCULAR) {
-			float otherRadius = ((CircularHitBox) other).getRadius();
-			float radii = radius + otherRadius;
 			float horizontalDistance = other.getX() - getX();
 			float verticalDistance = other.getY() - getY();
 			float squareDistance = horizontalDistance * horizontalDistance + verticalDistance * verticalDistance;
+			float radii = radius + ((CircularHitBox) other).getRadius();
+			//same as saying the square distance between their centers is less than the squared sum of their radii
 			return (squareDistance < radii * radii);
 		}
 
@@ -45,18 +44,20 @@ public class CircularHitBox extends HitBox {
 
 	@Override
 	public boolean handleCollisionWith(HitBox other, float dislodgeWeight) {
-		//avoid duplicate logic
-		if(other.getType() == Type.POINT || other.getType() == Type.RECTANGULAR)
-			return other.handleCollisionWith(this, 1 - dislodgeWeight);
+		if(other.getType() == Type.POINT || other.getType() == Type.RECTANGULAR || other.getType() == Type.POLYGON)
+			return other.handleCollisionWith(this, 1 - dislodgeWeight); //avoids duplicate logic
 
-		//move the circles away from each others' centers
+		//handling a collision between two circles involves pushing each away from the other's center
 		if(other.getType() == Type.CIRCULAR) {
-			float otherRadius = ((CircularHitBox) other).getRadius();
-			float radii = radius + otherRadius;
+			//two circles are colliding if the distance between their centers is less than the sum of their radii
 			float horizontalDistance = other.getX() - getX();
 			float verticalDistance = other.getY() - getY();
+			float radii = radius + ((CircularHitBox) other).getRadius();
 			float squareDistance = horizontalDistance * horizontalDistance + verticalDistance * verticalDistance;
+
+			//same as saying the square distance between their centers is less than the squared sum of their radii
 			if(squareDistance < radii * radii) {
+				//since the circles are intersecting, dislodge them an amount equal to the overlap (radii - distance between centers)
 				float distance = (float) Math.sqrt(squareDistance);
 				float xNorm = horizontalDistance / distance;
 				float yNorm = verticalDistance / distance;
@@ -75,8 +76,10 @@ public class CircularHitBox extends HitBox {
 	}
 
 	@Override
-	public Type getType() {
-		return Type.CIRCULAR;
+	public void render(Graphics g, Color color) {
+		g.setColor(color);
+		//keep in mind the parameters are for a box containing the arc, and then the degrees of the arc to draw within that box
+		g.fillArc(getX() - radius, getY() - radius, 2 * radius, 2 * radius, 0, 360);
 	}
 
 	@Override
@@ -100,8 +103,7 @@ public class CircularHitBox extends HitBox {
 	}
 
 	@Override
-	public void render(Graphics g, Color color) {
-		g.setColor(color);
-		g.fillArc(getX() - radius, getY() - radius, 2 * radius, 2 * radius, 0, 360);
+	public Type getType() {
+		return Type.CIRCULAR;
 	}
 }
