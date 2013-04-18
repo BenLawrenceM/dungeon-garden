@@ -3,6 +3,8 @@ package com.benlawrencem.game.dungeongarden.collision;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 
+import com.benlawrencem.game.dungeongarden.entity.Entity;
+
 public class CircularArea extends Area {
 	private float radius;
 
@@ -25,61 +27,45 @@ public class CircularArea extends Area {
 	}
 
 	@Override
-	public boolean isCollidingWith(Area other) {
-		if(other.getType() == Type.POINT || other.getType() == Type.RECTANGULAR || other.getType() == Type.POLYGONAL)
-			return other.isCollidingWith(this); //avoids duplicate logic
-
-		//two circles are colliding if the distance between their centers is less than the sum of their radii
-		if(other.getType() == Type.CIRCULAR) {
-			float horizontalDistance = other.getX() - getX();
-			float verticalDistance = other.getY() - getY();
-			float squareDistance = horizontalDistance * horizontalDistance + verticalDistance * verticalDistance;
-			float radii = radius + ((CircularArea) other).getRadius();
-			//same as saying the square distance between their centers is less than the squared sum of their radii
-			return (squareDistance < radii * radii);
-		}
-
-		return false;
+	public void render(Graphics g, Color color) {
+		g.setColor(color);
+		//keep in mind the parameters are for a box containing the arc, and then the degrees of the arc to draw within that box
+		g.fillArc(getX() - radius, getY() - radius, 2 * radius, 2 * radius, 0, 360);
 	}
 
 	@Override
-	public boolean handleCollisionWith(Area other, float dislodgeWeight) {
+	protected boolean checkForIntersection(Area other, boolean callOnCollisionAfter) {
 		if(other.getType() == Type.POINT || other.getType() == Type.RECTANGULAR || other.getType() == Type.POLYGONAL)
-			return other.handleCollisionWith(this, 1 - dislodgeWeight); //avoids duplicate logic
+			return other.checkForIntersection(this, callOnCollisionAfter); //avoids duplicate logic
 
-		//handling a collision between two circles involves pushing each away from the other's center
+		//two circles are intersecting iff the distance between their centers is less than the sum of their radii
 		if(other.getType() == Type.CIRCULAR) {
-			//two circles are colliding if the distance between their centers is less than the sum of their radii
 			float horizontalDistance = other.getX() - getX();
 			float verticalDistance = other.getY() - getY();
 			float radii = radius + ((CircularArea) other).getRadius();
 			float squareDistance = horizontalDistance * horizontalDistance + verticalDistance * verticalDistance;
 
-			//same as saying the square distance between their centers is less than the squared sum of their radii
+			//same as saying two circles are intersecting iff the SQUARE distance between their centers is less than the SQUARED sum of their radii
 			if(squareDistance < radii * radii) {
-				//since the circles are intersecting, dislodge them an amount equal to the overlap (radii - distance between centers)
-				float distance = (float) Math.sqrt(squareDistance);
-				float xNorm = horizontalDistance / distance;
-				float yNorm = verticalDistance / distance;
-				getParent().dislodgeFrom(other.getParent(),
-						-xNorm * (radii - distance) * dislodgeWeight,
-						-yNorm * (radii - distance) * dislodgeWeight);
-				other.getParent().dislodgeFrom(getParent(),
-						xNorm * (radii - distance) * (1 - dislodgeWeight),
-						yNorm * (radii - distance) * (1 - dislodgeWeight));
+				if(callOnCollisionAfter) {
+					//since the circles are intersecting, the overlap is the sum of their radii minus the distance between their centers
+					float scalar = Entity.calculateCollisionscalar(getParent(), other.getParent());
+					float distance = (float) Math.sqrt(squareDistance);
+					float xNorm = horizontalDistance / distance;
+					float yNorm = verticalDistance / distance;
+					getParent().onCollision(other.getParent(),
+							-xNorm * (radii - distance) * scalar,
+							-yNorm * (radii - distance) * scalar);
+					other.getParent().onCollision(getParent(),
+							xNorm * (radii - distance) * (1 - scalar),
+							yNorm * (radii - distance) * (1 - scalar));
+				}
 				return true;
 			}
 			return false;
 		}
 
 		return false;
-	}
-
-	@Override
-	public void render(Graphics g, Color color) {
-		g.setColor(color);
-		//keep in mind the parameters are for a box containing the arc, and then the degrees of the arc to draw within that box
-		g.fillArc(getX() - radius, getY() - radius, 2 * radius, 2 * radius, 0, 360);
 	}
 
 	@Override

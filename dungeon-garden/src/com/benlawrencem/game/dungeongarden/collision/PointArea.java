@@ -3,6 +3,8 @@ package com.benlawrencem.game.dungeongarden.collision;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 
+import com.benlawrencem.game.dungeongarden.entity.Entity;
+
 public class PointArea extends Area {
 	public PointArea() {
 		super();
@@ -13,112 +15,91 @@ public class PointArea extends Area {
 	}
 
 	@Override
-	public boolean isCollidingWith(Area other) {
-		//two points are colliding if they are exactly on top of each other
-		if(other.getType() == Type.POINT) {
-			return getX() == other.getX() && getY() == other.getY();
-		}
-
-		//a point is intersecting a circle if the distance between the point and the circle's center is less than the circle's radius
-		if(other.getType() == Type.CIRCULAR) {
-			float radius = ((CircularArea) other).getRadius();
-			float horizontalDistance = other.getX() - getX();
-			float verticalDistance = other.getY() - getY();
-			float squareDistance = horizontalDistance * horizontalDistance + verticalDistance * verticalDistance;
-			//same as saying the square distance between them is less than the square radius
-			return (squareDistance < radius * radius);
-		}
-
-		//a point is intersecting a rectangle if the point is between the rectangle's horizontal and vertical bounds
-		if(other.getType() == Type.RECTANGULAR) {
-			float otherLeft = other.getLeft();
-			float otherRight = other.getRight();
-			float otherTop = other.getTop();
-			float otherBottom = other.getBottom();
-			return (otherLeft < getX() && getX() < otherRight && otherTop < getY() && getY() < otherBottom);
-		}
-
-		return false;
-	}
-
-	@Override
-	public boolean handleCollisionWith(Area other, float dislodgeWeight) {
-		//two points shouldn't be dislodged--the result is unpredictable
-		if(other.getType() == Type.POINT) {
-			return getX() == other.getX() && getY() == other.getY();
-		}
-
-		//move the point away from the center of the circle
-		if(other.getType() == Type.CIRCULAR) {
-			float radius = ((CircularArea) other).getRadius();
-			float horizontalDistance = other.getX() - getX();
-			float verticalDistance = other.getY() - getY();
-			float squareDistance = horizontalDistance * horizontalDistance + verticalDistance * verticalDistance;
-			if(squareDistance < radius * radius) {
-				float distance = (float) Math.sqrt(squareDistance);
-				float xNorm = horizontalDistance / distance;
-				float yNorm = verticalDistance / distance;
-				getParent().dislodgeFrom(other.getParent(),
-						-xNorm * (radius - distance) * dislodgeWeight,
-						-yNorm * (radius - distance) * dislodgeWeight);
-				other.getParent().dislodgeFrom(getParent(),
-						xNorm * (radius - distance) * (1 - dislodgeWeight),
-						yNorm * (radius - distance) * (1 - dislodgeWeight));
-				return true;
-			}
-			return false;
-		}
-
-		//move the point away from the nearest side of the rectangle
-		if(other.getType() == Type.RECTANGULAR) {
-			float otherLeft = other.getLeft();
-			float otherRight = other.getRight();
-			float otherTop = other.getTop();
-			float otherBottom = other.getBottom();
-			if(otherLeft < getX() && getX() < otherRight && otherTop < getY() && getY() < otherBottom) {
-				float distanceToLeft = getX() - otherLeft;
-				float distanceToRight = otherRight - getX();
-				float distanceToTop = getY() - otherTop;
-				float distanceToBottom = otherBottom - getY();
-				float dislodgeX = 0;
-				float dislodgeY = 0;
-				float otherDislodgeX = 0;
-				float otherDislodgeY = 0;
-				if(distanceToLeft < distanceToRight && distanceToLeft < distanceToTop && distanceToLeft < distanceToBottom) {
-					otherDislodgeX = -distanceToLeft * dislodgeWeight;
-					otherDislodgeX = distanceToLeft * (1 - dislodgeWeight);
-				}
-				else if(distanceToRight < distanceToTop && distanceToRight < distanceToBottom) {
-					otherDislodgeX = distanceToRight * dislodgeWeight;
-					otherDislodgeX = -distanceToRight * (1 - dislodgeWeight);
-				}
-				else if(distanceToTop < distanceToBottom) {
-					dislodgeY = -distanceToTop * dislodgeWeight;
-					otherDislodgeY = distanceToTop * (1 - dislodgeWeight);
-				}
-				else {
-					dislodgeY = distanceToBottom * dislodgeWeight;
-					otherDislodgeY = -distanceToBottom * (1 - dislodgeWeight);
-				}
-				getParent().dislodgeFrom(other.getParent(), dislodgeX, dislodgeY);
-				other.getParent().dislodgeFrom(getParent(), otherDislodgeX, otherDislodgeY);
-				return true;
-			}
-			return false;
-		}
-
-		return false;
-	}
-
-	@Override
 	public void render(Graphics g, Color color) {
 		g.setColor(color);
 		g.fillArc(getX() - 1, getY() - 1, 2, 2, 0, 360);
 	}
 
 	@Override
-	public Type getType() {
-		return Type.POINT;
+	protected boolean checkForIntersection(Area other, boolean callOnCollisionAfter) {
+		//two points are intersecting if they are exactly on top of one other
+		if(other.getType() == Type.POINT) {
+			if(getX() == other.getX() && getY() == other.getY()) {
+				//there's no good way to dislodge two points, so don't!
+				if(callOnCollisionAfter) {
+					getParent().onCollision(other.getParent(), 0, 0);
+					other.getParent().onCollision(getParent(), 0, 0);
+				}
+				return true;
+			}
+			return false;
+		}
+
+		//a point is intersecting a circle if the distance from the point to the center of the circle is less than the radius
+		if(other.getType() == Type.CIRCULAR) {
+			float horizontalDistance = other.getX() - getX();
+			float verticalDistance = other.getY() - getY();
+			float radius = ((CircularArea) other).getRadius();
+			float squareDistance = horizontalDistance * horizontalDistance + verticalDistance * verticalDistance;
+
+			//same as saying a point is intersecting a circle if the SQUARE distance from the point to the center of the circle is less than the SQUARE radius
+			if(squareDistance < radius * radius) {
+				//since they are intersecting, the overlap is the radius minus the distance from the point to the center of the circle
+				if(callOnCollisionAfter) {
+					float scalar = Entity.calculateCollisionscalar(getParent(), other.getParent());
+					float distance = (float) Math.sqrt(squareDistance);
+					float xNorm = horizontalDistance / distance;
+					float yNorm = verticalDistance / distance;
+					getParent().onCollision(other.getParent(),
+							-xNorm * (radius - distance) * scalar,
+							-yNorm * (radius - distance) * scalar);
+					other.getParent().onCollision(getParent(),
+							xNorm * (radius - distance) * (1 - scalar),
+							yNorm * (radius - distance) * (1 - scalar));
+				}
+				return true;
+			}
+			return false;
+		}
+
+		//a point is intersecting a rectangle if it lies between the left/right bounds and the top/bottom bounds
+		if(other.getType() == Type.RECTANGULAR) {
+			if(other.getLeft() < getX() && getX() < other.getRight() && other.getTop() < getY() && getY() < other.getBottom()) {
+				//the point is overlapping an amount equal to the distance straight to the closest edge
+				if(callOnCollisionAfter) {
+					float scalar = Entity.calculateCollisionscalar(getParent(), other.getParent());
+					float distanceToLeft = getX() - other.getLeft();
+					float distanceToRight = other.getRight() - getX();
+					float distanceToTop = getY() - other.getTop();
+					float distanceToBottom = other.getBottom() - getY();
+					float overlapX = 0;
+					float overlapY = 0;
+
+					//the point is closest to the left edge
+					if(distanceToLeft < distanceToRight && distanceToLeft < distanceToTop && distanceToLeft < distanceToBottom)
+						overlapX = -distanceToLeft;
+
+					//the point is closest to the right edge
+					else if(distanceToRight < distanceToTop && distanceToRight < distanceToBottom)
+						overlapX = distanceToRight;
+
+					//the point is closest to the top edge
+					else if(distanceToTop < distanceToBottom)
+						overlapY = -distanceToTop;
+
+					//the point is closest to the bottom edge
+					else
+						overlapY = distanceToBottom;
+
+					getParent().onCollision(other.getParent(), overlapX * scalar, overlapY * scalar);
+					other.getParent().onCollision(getParent(), -overlapX * (1 - scalar), -overlapY * (1 - scalar));
+				}
+				return true;
+			}
+			return false;
+		}
+
+		return false;
 	}
 
 	@Override
@@ -139,5 +120,10 @@ public class PointArea extends Area {
 	@Override
 	public float getRight() {
 		return getX();
+	}
+
+	@Override
+	public Type getType() {
+		return Type.POINT;
 	}
 }

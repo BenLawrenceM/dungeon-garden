@@ -3,6 +3,8 @@ package com.benlawrencem.game.dungeongarden.collision;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 
+import com.benlawrencem.game.dungeongarden.entity.Entity;
+
 public class RectangularArea extends Area {
 	private float width;
 	private float height;
@@ -39,115 +41,50 @@ public class RectangularArea extends Area {
 	}
 
 	@Override
-	public boolean isCollidingWith(Area other) {
-		//avoid duplicate logic
-		if(other.getType() == Type.POINT)
-			return other.isCollidingWith(this);
-
-		//move the rectangles either vertically or horizontally (but not diagonally) to get them to no longer intersect
-		if(other.getType() == Type.RECTANGULAR) {
-			float otherLeft = other.getLeft();
-			float otherRight = other.getRight();
-			float otherTop = other.getTop();
-			float otherBottom = other.getBottom();
-
-			//tests to see if the rectangles are overlapping horizontally and vertically--if so they are intersecting, if not they aren't
-			return (((otherLeft <= getLeft() && getLeft() < otherRight) || (getLeft() <= otherLeft && otherLeft < getRight()))
-					&& ((otherTop <= getTop() && getTop() < otherBottom) || (getTop() <= otherTop && otherTop < getBottom())));
-		}
-
-		//move the rectangle away from the circle's center if it's intersecting one of the corners, but only vertically or horizontally otherwise
-		if(other.getType() == Type.CIRCULAR) {
-			float myX = getX();
-			float myY = getY();
-			float myLeft = getLeft();
-			float myRight = getRight();
-			float myTop = getTop();
-			float myBottom = getBottom();
-			float otherX = other.getX();
-			float otherY = other.getY();
-			float otherRadius = ((CircularArea) other).getRadius();
-			float otherLeft = other.getLeft();
-			float otherRight = other.getRight();
-			float otherTop = other.getTop();
-			float otherBottom = other.getBottom();
-
-			//if the circle's center is directly above or below the rectangle, just do a shadow collision check
-			if(myLeft <= otherX && otherX < myRight)
-				return ((otherTop <= myTop && myTop < otherBottom) || (myTop <= otherTop && otherTop < myBottom));
-
-			//if the circle's center is directly to the left or right of the rectangle, just do a shadow collision check
-			if(myTop < otherY && otherY < myBottom)
-				return (((otherLeft <= myLeft && myLeft < otherRight) || (myLeft <= otherLeft && otherLeft < myRight)));
-
-			//otherwise, check to see if the distance to the nearest rectangle corner is less than the circle's radius
-			float horizontalDistance = (otherX > myX ? myRight - otherX : myLeft - otherX);
-			float verticalDistance = (otherY > myY ? myBottom - otherY : myTop - otherY);
-			float squareDistance = horizontalDistance * horizontalDistance + verticalDistance * verticalDistance;
-			//same as checking to see if the square distance from the nearest rectangle corner is less than the square of the circle's radius
-			return (squareDistance < otherRadius * otherRadius);
-		}
-
-		return false;
+	public void render(Graphics g, Color color) {
+		g.setColor(color);
+		g.fillRect(getLeft(), getTop(), width, height);
 	}
 
 	@Override
-	public boolean handleCollisionWith(Area other, float dislodgeWeight) {
-		//avoid duplicate logic
+	protected boolean checkForIntersection(Area other, boolean callOnCollisionAfter) {
 		if(other.getType() == Type.POINT)
-			return other.handleCollisionWith(this, 1 - dislodgeWeight);
+			return other.checkForIntersection(this, callOnCollisionAfter); //avoids duplicate logic
 
-		//move the rectangles either vertically or horizontally (but not diagonally) to get them to no longer intersect
+		//two rectangles are intersecting iff their horizontal and vertical shadows both clip
 		if(other.getType() == Type.RECTANGULAR) {
-			float otherLeft = ((RectangularArea) other).getLeft();
-			float otherRight = ((RectangularArea) other).getRight();
-			float otherTop = ((RectangularArea) other).getTop();
-			float otherBottom = ((RectangularArea) other).getBottom();
-
-			//tests to see if the rectangles are overlapping horizontally and vertically--if so they are intersecting, if not they aren't
-			if(((otherLeft <= getLeft() && getLeft() < otherRight) || (getLeft() <= otherLeft && otherLeft < getRight()))
-					&& ((otherTop <= getTop() && getTop() < otherBottom) || (getTop() <= otherTop && otherTop < getBottom()))) {
-				float horizontalOverlap = (getX() < other.getX() ? getRight() - otherLeft : otherRight - getLeft());
-				float verticalOverlap = (getY() < other.getY() ? getBottom() - otherTop : otherBottom - getTop());
-				float dislodgeX = 0;
-				float dislodgeY = 0;
-				float otherDislodgeX = 0;
-				float otherDislodgeY = 0;
-				if(horizontalOverlap < verticalOverlap) {
-					if(getX() < other.getX()) {
-						dislodgeX = -horizontalOverlap * dislodgeWeight;
-						otherDislodgeX = horizontalOverlap * (1 - dislodgeWeight);
-					}
-					else {
-						dislodgeX = horizontalOverlap * dislodgeWeight;
-						otherDislodgeX = -horizontalOverlap * (1 - dislodgeWeight);
-					}
+			if(((other.getLeft() <= getLeft() && getLeft() < other.getRight())				//l-----L-=-=-r=====R   (uppercase = this, lowercase = other)
+					|| (getLeft() <= other.getLeft() && other.getLeft() < getRight()))		//L=====l=-=-=R-----r
+					&& ((other.getTop() <= getTop() && getTop() < other.getBottom())		//t-----T-=-=-b=====B
+					|| (getTop() <= other.getTop() && other.getTop() < getBottom()))) {		//T=====t=-=-=B-----b
+				//the rectangles overlap an amount equal to the minimum overlap of their two axes
+				if(callOnCollisionAfter) {
+					float scalar = Entity.calculateCollisionscalar(getParent(), other.getParent());
+					float horizontalDistance = (getX() < other.getX() ? getRight() - other.getLeft() : other.getRight() - getLeft());
+					float verticalDistance = (getY() < other.getY() ? getBottom() - other.getTop() : other.getBottom() - getTop());
+					float overlapX = 0;
+					float overlapY = 0;
+					if(horizontalDistance < verticalDistance)
+						overlapX = (getX() < other.getX() ? -horizontalDistance : horizontalDistance);
+					else
+						overlapY = (getY() < other.getY() ? -verticalDistance : verticalDistance);
+					getParent().onCollision(other.getParent(), overlapX * scalar, overlapY * scalar);
+					other.getParent().onCollision(getParent(), -overlapX * (1 - scalar), -overlapY * (1 - scalar));
 				}
-				else {
-					if(getY() < other.getY()) {
-						dislodgeY = -verticalOverlap * dislodgeWeight;
-						otherDislodgeY = verticalOverlap * (1 - dislodgeWeight);
-					}
-					else {
-						dislodgeY = verticalOverlap * dislodgeWeight;
-						otherDislodgeY = -verticalOverlap * (1 - dislodgeWeight);
-					}
-				}
-				getParent().dislodgeFrom(other.getParent(), dislodgeX, dislodgeY);
-				other.getParent().dislodgeFrom(getParent(), otherDislodgeX, otherDislodgeY);
 				return true;
 			}
 			return false;
 		}
 
-		//move the rectangle away from the circle's center if it's intersecting one of the corners, but only vertically or horizontally otherwise
+		//a rectangle intersects a circle iff the circle intersects one of the rectangle's corners or if it is directly above/below/to the side
+		// and the horizontal and vertical shadows overlap
 		if(other.getType() == Type.CIRCULAR) {
-			float myX = getX();
-			float myY = getY();
-			float myLeft = getLeft();
-			float myRight = getRight();
-			float myTop = getTop();
-			float myBottom = getBottom();
+			float x = getX();
+			float y = getY();
+			float left = getLeft();
+			float right = getRight();
+			float top = getTop();
+			float bottom = getBottom();
 			float otherX = other.getX();
 			float otherY = other.getY();
 			float otherRadius = ((CircularArea) other).getRadius();
@@ -157,17 +94,13 @@ public class RectangularArea extends Area {
 			float otherBottom = other.getBottom();
 
 			//if the circle's center is directly above or below the rectangle, just do a shadow collision check
-			if(myLeft <= otherX && otherX < myRight) {
-				if((otherTop <= myTop && myTop < otherBottom) || (myTop <= otherTop && otherTop < myBottom)) {
-					if(myY < otherY) {
-						float verticalDistance = myBottom - otherTop;
-						getParent().dislodgeFrom(other.getParent(), 0, -verticalDistance * dislodgeWeight);
-						other.getParent().dislodgeFrom(getParent(), 0, verticalDistance * (1 - dislodgeWeight));
-					}
-					else {
-						float verticalDistance = otherBottom - myTop;
-						getParent().dislodgeFrom(other.getParent(), 0, verticalDistance * dislodgeWeight);
-						other.getParent().dislodgeFrom(getParent(), 0, -verticalDistance * (1 - dislodgeWeight));
+			if(left <= otherX && otherX < right) {
+				if((otherTop <= top && top < otherBottom) || (top <= otherTop && otherTop < bottom)) {
+					if(callOnCollisionAfter) {
+						float scalar = Entity.calculateCollisionscalar(getParent(), other.getParent());
+						float overlapY = (y < otherY ? otherTop - bottom : otherBottom - top);
+						getParent().onCollision(other.getParent(), 0, overlapY * scalar);
+						other.getParent().onCollision(getParent(), 0, -overlapY * (1 - scalar));
 					}
 					return true;
 				}
@@ -175,49 +108,39 @@ public class RectangularArea extends Area {
 			}
 
 			//if the circle's center is directly to the left or right of the rectangle, just do a shadow collision check
-			if(myTop < otherY && otherY < myBottom) {
-				if(((otherLeft <= myLeft && myLeft < otherRight) || (myLeft <= otherLeft && otherLeft < myRight))) {
-					if(myX < otherX) {
-						float horizontalDistance = myRight - otherLeft;
-						getParent().dislodgeFrom(other.getParent(), -horizontalDistance * dislodgeWeight, 0);
-						other.getParent().dislodgeFrom(getParent(), horizontalDistance * (1 - dislodgeWeight), 0);
-					}
-					else {
-						float horizontalDistance = otherRight - myLeft;
-						getParent().dislodgeFrom(other.getParent(), horizontalDistance * dislodgeWeight, 0);
-						other.getParent().dislodgeFrom(getParent(), -horizontalDistance * (1 - dislodgeWeight), 0);
+			if(top < otherY && otherY < bottom) {
+				if(((otherLeft <= left && left < otherRight) || (left <= otherLeft && otherLeft < right))) {
+					if(callOnCollisionAfter) {
+						float scalar = Entity.calculateCollisionscalar(getParent(), other.getParent());
+						float overlapX = (x < otherX ? otherLeft - right : otherRight - left);
+						getParent().onCollision(other.getParent(), overlapX * scalar, 0);
+						other.getParent().onCollision(getParent(), -overlapX * (1 - scalar), 0);
 					}
 					return true;
 				}
 				return false;
 			}
 
-			//otherwise, check to see if the distance to the nearest rectangle corner is less than the circle's radius
-			float horizontalDistance = (otherX > myX ? myRight - otherX : myLeft - otherX);
-			float verticalDistance = (otherY > myY ? myBottom - otherY : myTop - otherY);
+			//otherwise, the rectangle and circle are intersecting iff the distance to the nearest rectangle corner is less than the circle's radius
+			float horizontalDistance = (otherX > x ? right - otherX : left - otherX);
+			float verticalDistance = (otherY > y ? bottom - otherY : top - otherY);
 			float squareDistance = horizontalDistance * horizontalDistance + verticalDistance * verticalDistance;
-			//same as checking to see if the square distance from the nearest rectangle corner is less than the square of the circle's radius
+			//same as saying the rectangle and circle are intersecting iff the SQUARE distance to the nearest rectangle corner is less than the circle's SQUARE radius
 			if(squareDistance < otherRadius * otherRadius) {
-				float distance = (float) Math.sqrt(squareDistance);
-				float xNorm = horizontalDistance / distance;
-				float yNorm = verticalDistance / distance;
-				getParent().dislodgeFrom(other.getParent(),
-						xNorm * (otherRadius - distance) * dislodgeWeight,
-						yNorm * (otherRadius - distance) * dislodgeWeight);
-				other.getParent().dislodgeFrom(getParent(),
-						-xNorm * (otherRadius - distance) * (1 - dislodgeWeight),
-						-yNorm * (otherRadius - distance) * (1 - dislodgeWeight));
+				if(callOnCollisionAfter) {
+					float scalar = Entity.calculateCollisionscalar(getParent(), other.getParent());
+					float distance = (float) Math.sqrt(squareDistance);
+					float overlapX = horizontalDistance / distance * (otherRadius - distance);
+					float overlapY = verticalDistance / distance * (otherRadius - distance);
+					getParent().onCollision(other.getParent(), overlapX * scalar, overlapY * scalar);
+					other.getParent().onCollision(getParent(), -overlapX * (1 - scalar), -overlapY * (1 - scalar));
+				}
 				return true;
 			}
 			return false;
 		}
 
 		return false;
-	}
-
-	@Override
-	public Type getType() {
-		return Type.RECTANGULAR;
 	}
 
 	@Override
@@ -241,8 +164,7 @@ public class RectangularArea extends Area {
 	}
 
 	@Override
-	public void render(Graphics g, Color color) {
-		g.setColor(color);
-		g.fillRect(getLeft(), getTop(), width, height);
+	public Type getType() {
+		return Type.RECTANGULAR;
 	}
 }

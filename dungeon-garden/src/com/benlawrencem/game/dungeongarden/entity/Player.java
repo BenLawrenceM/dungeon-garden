@@ -56,8 +56,8 @@ public class Player extends MovableEntity {
 
 	@Override
 	public void render(Graphics g) {
-		if(getHitBox() != null)
-			getHitBox().render(g, color);
+		if(getHitArea() != null)
+			getHitArea().render(g, color);
 	}
 
 	public int getPlayerId() {
@@ -143,5 +143,10 @@ public class Player extends MovableEntity {
 
 	public void setColor(Color color) {
 		this.color = color;
+	}
+
+	@Override
+	public void onHit(Entity other) {
+		
 	}
 }

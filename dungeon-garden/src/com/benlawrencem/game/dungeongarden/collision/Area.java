@@ -56,9 +56,26 @@ public abstract class Area {
 		this.offsetY = offsetY;
 	}
 
-	public abstract boolean isCollidingWith(Area other);
+	public boolean isIntersecting(Area other) {
+		boolean intersecting = checkForIntersection(other, false);
+		return intersecting;
+	}
 
-	public abstract boolean handleCollisionWith(Area other, float dislodgeWeight);
+	public boolean checkForHit(Area other) {
+		boolean intersecting = checkForIntersection(other, false);
+		if(intersecting) {
+			getParent().onHit(other.getParent());
+			other.getParent().onHit(getParent());
+		}
+		return intersecting;
+	}
+
+	public boolean checkForCollision(Area other) {
+		boolean intersecting = checkForIntersection(other, true);
+		return intersecting;
+	}
+
+	protected abstract boolean checkForIntersection(Area other, boolean callOnCollisionAfter);
 
 	public abstract Type getType();
 

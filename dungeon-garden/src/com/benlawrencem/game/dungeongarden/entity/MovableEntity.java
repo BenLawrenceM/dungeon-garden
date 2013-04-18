@@ -18,12 +18,16 @@ public abstract class MovableEntity extends Entity {
 	}
 
 	public MovableEntity(Level level, Area hitBox) {
-		super(level, hitBox);
+		super(level);
+		setHitArea(hitBox);
+		setCollisionArea(hitBox);
 		setVelocity(0, 0);
 	}
 
 	public MovableEntity(Level level, float x, float y, Area hitBox) {
-		super(level, x, y, hitBox);
+		super(level, x, y);
+		setHitArea(hitBox);
+		setCollisionArea(hitBox);
 		setVelocity(0, 0);
 	}
 
@@ -33,7 +37,9 @@ public abstract class MovableEntity extends Entity {
 	}
 
 	public MovableEntity(Level level, float x, float y, float velX, float velY, Area hitBox) {
-		super(level, x, y, hitBox);
+		super(level, x, y);
+		setHitArea(hitBox);
+		setCollisionArea(hitBox);
 		setVelocity(velX, velY);
 	}
 

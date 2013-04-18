@@ -45,15 +45,15 @@ public class BasicLevel implements Level, ClientListener {
 		//check player collisions
 		for(int i = 0; i < players.size(); i++) {
 			for(int j = i + 1; j < players.size(); j++)
-				players.get(i).handleCollisionWith(players.get(j), 0.5f);
-			players.get(i).handleCollisionWith(currPlayer, 0.5f);
+				players.get(i).checkForCollision(players.get(j));
+			players.get(i).checkForCollision(currPlayer);
 		}
 
 		//check collisions with the frost titan
 		for(int i = 0; i < players.size(); i++) {
-			players.get(i).handleCollisionWith(titan, 1f);
+			players.get(i).checkForCollision(titan);
 		}
-		currPlayer.handleCollisionWith(titan, 1f);
+		currPlayer.checkForCollision(titan);
 
 		//keep players in bounds
 		for(Player player : players)

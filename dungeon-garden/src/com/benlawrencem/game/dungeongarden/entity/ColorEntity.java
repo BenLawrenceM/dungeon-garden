@@ -10,7 +10,9 @@ public class ColorEntity extends Entity {
 	private Color color;
 
 	public ColorEntity(Level level, float x, float y, Area hitBox, Color color) {
-		super(level, x, y, hitBox);
+		super(level, x, y);
+		setHitArea(hitBox);
+		setCollisionArea(hitBox);
 		this.color = color;
 	}
 
@@ -29,7 +31,12 @@ public class ColorEntity extends Entity {
 
 	@Override
 	public void render(Graphics g) {
-		if(getHitBox() != null)
-			getHitBox().render(g, color);
+		if(getHitArea() != null)
+			getHitArea().render(g, color);
+	}
+
+	@Override
+	public void onHit(Entity other) {
+		
 	}
 }

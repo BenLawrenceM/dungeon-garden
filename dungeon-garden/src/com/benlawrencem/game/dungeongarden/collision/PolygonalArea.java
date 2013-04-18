@@ -42,23 +42,6 @@ public class PolygonalArea extends Area {
 	}
 
 	@Override
-	public boolean isCollidingWith(Area other) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean handleCollisionWith(Area other, float dislodgeWeight) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public Type getType() {
-		return Type.POLYGONAL;
-	}
-
-	@Override
 	public void render(Graphics g, Color color) {
 		if(polyRender == null)
 			polyRender = new Polygon(points);
@@ -66,6 +49,12 @@ public class PolygonalArea extends Area {
 		polyRender.setCenterY(getY());
 		g.setColor(color);
 		g.fill(polyRender);
+	}
+
+	@Override
+	protected boolean checkForIntersection(Area other, boolean callOnCollisionAfter) {
+		//TODO fill out this function
+		return false;
 	}
 
 	@Override
@@ -86,5 +75,10 @@ public class PolygonalArea extends Area {
 	@Override
 	public float getRight() {
 		return getX() + maxX;
+	}
+
+	@Override
+	public Type getType() {
+		return Type.POLYGONAL;
 	}
 }

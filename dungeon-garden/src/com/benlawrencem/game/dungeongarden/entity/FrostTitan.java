@@ -142,4 +142,9 @@ public class FrostTitan extends MovableEntity {
 		}
 		anim.draw(getX() - 64 * 3, getY() - 64 * 3, 64 * 6, 64 * 6);
 	}
+
+	@Override
+	public void onHit(Entity other) {
+		
+	}
 }

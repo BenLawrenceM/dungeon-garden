@@ -38,15 +38,15 @@ public class CollisionTestLevel implements Level {
 		if(r < .45)
 			return new SimpleEntity(this, posX, posY, velX, velY,
 					new RectangularArea(0, 0, 10 + 50 * (float) Math.random(), 10 + 50 * (float) Math.random()),
-					Color.white);
+					Color.white, false);
 		else if(r < .9)
 			return new SimpleEntity(this, posX, posY, velX, velY,
 					new CircularArea(0, 0, 10 + 30 * (float) Math.random()),
-					Color.white);
+					Color.white, false);
 		else
 			return new SimpleEntity(this, posX, posY, velX, velY,
 					new PointArea(0, 0),
-					Color.white);
+					Color.white, false);
 	}
 
 	private SimpleEntity rollWall() {
@@ -58,15 +58,15 @@ public class CollisionTestLevel implements Level {
 		if(r < .45)
 			return new SimpleEntity(this, posX, posY, velX, velY,
 					new RectangularArea(0, 0, 10 + 50 * (float) Math.random(), 10 + 50 * (float) Math.random()),
-					Color.white);
+					Color.gray, true);
 		else if(r < .9)
 			return new SimpleEntity(this, posX, posY, velX, velY,
 					new CircularArea(0, 0, 10 + 30 * (float) Math.random()),
-					Color.white);
+					Color.gray, true);
 		else
 			return new SimpleEntity(this, posX, posY, velX, velY,
 					new PointArea(0, 0),
-					Color.white);
+					Color.gray, true);
 	}
 
 	@Override
@@ -92,7 +92,7 @@ public class CollisionTestLevel implements Level {
 				if(entities.get(i).isCollidingWith(entities.get(j))) {
 					entities.get(i).setColor(Color.red);
 					entities.get(j).setColor(Color.red);
-					entities.get(i).handleCollisionWith(entities.get(j), 0.5f);
+					entities.get(i).checkForCollision(entities.get(j));
 				}
 			}
 		}
@@ -102,7 +102,7 @@ public class CollisionTestLevel implements Level {
 				if(entities.get(i).isCollidingWith(walls.get(j))) {
 					entities.get(i).setColor(Color.red);
 					walls.get(j).setColor(Color.blue);
-					entities.get(i).handleCollisionWith(walls.get(j), 1.0f);
+					entities.get(i).checkForCollision(walls.get(j));
 				}
 			}
 		}
@@ -120,12 +120,16 @@ public class CollisionTestLevel implements Level {
 		private float velX;
 		private float velY;
 		private Color color;
+		private boolean isWall;
 
-		public SimpleEntity(Level level, float x, float y, float velX, float velY, Area hitBox, Color color) {
-			super(level, x, y, hitBox);
+		public SimpleEntity(Level level, float x, float y, float velX, float velY, Area hitBox, Color color, boolean isWall) {
+			super(level, x, y);
+			setHitArea(hitBox);
+			setCollisionArea(hitBox);
 			this.velX = velX;
 			this.velY = velY;
 			this.color = color;
+			this.isWall = isWall;
 		}
 
 		public void setColor(Color color) {
@@ -140,10 +144,20 @@ public class CollisionTestLevel implements Level {
 
 		@Override
 		public void render(Graphics g) {
-			if(getHitBox() != null)
-				getHitBox().render(g, color);
+			if(getHitArea() != null)
+				getHitArea().render(g, color);
 			g.setColor(Color.white);
 			//g.drawArc(getX() - 5, getY() - 5, 10, 10, 0, 360);
+		}
+
+		@Override
+		public void onHit(Entity other) {
+			
+		}
+
+		@Override
+		public int getCollisionWeightClass() {
+			return (isWall ? Entity.COLLISION_WEIGHT_CLASS_IMMOVABLE : Entity.COLLISION_WEIGHT_CLASS_MEDIUM);
 		}
 	}
 
