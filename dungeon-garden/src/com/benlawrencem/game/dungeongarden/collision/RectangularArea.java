@@ -3,16 +3,16 @@ package com.benlawrencem.game.dungeongarden.collision;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 
-public class RectangularHitBox extends HitBox {
+public class RectangularArea extends Area {
 	private float width;
 	private float height;
 
-	public RectangularHitBox(float width, float height) {
+	public RectangularArea(float width, float height) {
 		super();
 		setDimensions(width, height);
 	}
 
-	public RectangularHitBox(float offsetX, float offsetY, float width, float height) {
+	public RectangularArea(float offsetX, float offsetY, float width, float height) {
 		super(offsetX, offsetY);
 		setDimensions(width, height);
 	}
@@ -39,7 +39,7 @@ public class RectangularHitBox extends HitBox {
 	}
 
 	@Override
-	public boolean isCollidingWith(HitBox other) {
+	public boolean isCollidingWith(Area other) {
 		//avoid duplicate logic
 		if(other.getType() == Type.POINT)
 			return other.isCollidingWith(this);
@@ -66,7 +66,7 @@ public class RectangularHitBox extends HitBox {
 			float myBottom = getBottom();
 			float otherX = other.getX();
 			float otherY = other.getY();
-			float otherRadius = ((CircularHitBox) other).getRadius();
+			float otherRadius = ((CircularArea) other).getRadius();
 			float otherLeft = other.getLeft();
 			float otherRight = other.getRight();
 			float otherTop = other.getTop();
@@ -92,17 +92,17 @@ public class RectangularHitBox extends HitBox {
 	}
 
 	@Override
-	public boolean handleCollisionWith(HitBox other, float dislodgeWeight) {
+	public boolean handleCollisionWith(Area other, float dislodgeWeight) {
 		//avoid duplicate logic
 		if(other.getType() == Type.POINT)
 			return other.handleCollisionWith(this, 1 - dislodgeWeight);
 
 		//move the rectangles either vertically or horizontally (but not diagonally) to get them to no longer intersect
 		if(other.getType() == Type.RECTANGULAR) {
-			float otherLeft = ((RectangularHitBox) other).getLeft();
-			float otherRight = ((RectangularHitBox) other).getRight();
-			float otherTop = ((RectangularHitBox) other).getTop();
-			float otherBottom = ((RectangularHitBox) other).getBottom();
+			float otherLeft = ((RectangularArea) other).getLeft();
+			float otherRight = ((RectangularArea) other).getRight();
+			float otherTop = ((RectangularArea) other).getTop();
+			float otherBottom = ((RectangularArea) other).getBottom();
 
 			//tests to see if the rectangles are overlapping horizontally and vertically--if so they are intersecting, if not they aren't
 			if(((otherLeft <= getLeft() && getLeft() < otherRight) || (getLeft() <= otherLeft && otherLeft < getRight()))
@@ -150,7 +150,7 @@ public class RectangularHitBox extends HitBox {
 			float myBottom = getBottom();
 			float otherX = other.getX();
 			float otherY = other.getY();
-			float otherRadius = ((CircularHitBox) other).getRadius();
+			float otherRadius = ((CircularArea) other).getRadius();
 			float otherLeft = other.getLeft();
 			float otherRight = other.getRight();
 			float otherTop = other.getTop();

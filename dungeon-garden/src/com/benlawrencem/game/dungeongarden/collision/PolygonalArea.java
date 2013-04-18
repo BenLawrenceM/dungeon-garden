@@ -5,7 +5,7 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.geom.Polygon;
 import org.newdawn.slick.geom.Shape;
 
-public class PolygonHitBox extends HitBox {
+public class PolygonalArea extends Area {
 	private float[] points;
 	private float minX;
 	private float maxX;
@@ -13,7 +13,7 @@ public class PolygonHitBox extends HitBox {
 	private float maxY;
 	private Shape polyRender;
 
-	public PolygonHitBox(float[] points) {
+	public PolygonalArea(float[] points) {
 		super(0, 0);
 		setPoints(points);
 	}
@@ -42,20 +42,20 @@ public class PolygonHitBox extends HitBox {
 	}
 
 	@Override
-	public boolean isCollidingWith(HitBox other) {
+	public boolean isCollidingWith(Area other) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public boolean handleCollisionWith(HitBox other, float dislodgeWeight) {
+	public boolean handleCollisionWith(Area other, float dislodgeWeight) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public Type getType() {
-		return Type.POLYGON;
+		return Type.POLYGONAL;
 	}
 
 	@Override

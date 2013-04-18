@@ -6,10 +6,10 @@ import java.util.List;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 
-import com.benlawrencem.game.dungeongarden.collision.CircularHitBox;
-import com.benlawrencem.game.dungeongarden.collision.HitBox;
-import com.benlawrencem.game.dungeongarden.collision.PointHitBox;
-import com.benlawrencem.game.dungeongarden.collision.RectangularHitBox;
+import com.benlawrencem.game.dungeongarden.collision.CircularArea;
+import com.benlawrencem.game.dungeongarden.collision.Area;
+import com.benlawrencem.game.dungeongarden.collision.PointArea;
+import com.benlawrencem.game.dungeongarden.collision.RectangularArea;
 import com.benlawrencem.game.dungeongarden.entity.Entity;
 
 public class CollisionTestLevel implements Level {
@@ -36,16 +36,16 @@ public class CollisionTestLevel implements Level {
 		float velX = 200 * (float) Math.random() - 100;
 		float velY = 200 * (float) Math.random() - 100;
 		if(r < .45)
-			return new SimpleEntity(posX, posY, velX, velY,
-					new RectangularHitBox(0, 0, 10 + 50 * (float) Math.random(), 10 + 50 * (float) Math.random()),
+			return new SimpleEntity(this, posX, posY, velX, velY,
+					new RectangularArea(0, 0, 10 + 50 * (float) Math.random(), 10 + 50 * (float) Math.random()),
 					Color.white);
 		else if(r < .9)
-			return new SimpleEntity(posX, posY, velX, velY,
-					new CircularHitBox(0, 0, 10 + 30 * (float) Math.random()),
+			return new SimpleEntity(this, posX, posY, velX, velY,
+					new CircularArea(0, 0, 10 + 30 * (float) Math.random()),
 					Color.white);
 		else
-			return new SimpleEntity(posX, posY, velX, velY,
-					new PointHitBox(0, 0),
+			return new SimpleEntity(this, posX, posY, velX, velY,
+					new PointArea(0, 0),
 					Color.white);
 	}
 
@@ -56,16 +56,16 @@ public class CollisionTestLevel implements Level {
 		float velX = 0;
 		float velY = 0;
 		if(r < .45)
-			return new SimpleEntity(posX, posY, velX, velY,
-					new RectangularHitBox(0, 0, 10 + 50 * (float) Math.random(), 10 + 50 * (float) Math.random()),
+			return new SimpleEntity(this, posX, posY, velX, velY,
+					new RectangularArea(0, 0, 10 + 50 * (float) Math.random(), 10 + 50 * (float) Math.random()),
 					Color.white);
 		else if(r < .9)
-			return new SimpleEntity(posX, posY, velX, velY,
-					new CircularHitBox(0, 0, 10 + 30 * (float) Math.random()),
+			return new SimpleEntity(this, posX, posY, velX, velY,
+					new CircularArea(0, 0, 10 + 30 * (float) Math.random()),
 					Color.white);
 		else
-			return new SimpleEntity(posX, posY, velX, velY,
-					new PointHitBox(0, 0),
+			return new SimpleEntity(this, posX, posY, velX, velY,
+					new PointArea(0, 0),
 					Color.white);
 	}
 
@@ -121,8 +121,8 @@ public class CollisionTestLevel implements Level {
 		private float velY;
 		private Color color;
 
-		public SimpleEntity(float x, float y, float velX, float velY, HitBox hitBox, Color color) {
-			super(x, y, hitBox);
+		public SimpleEntity(Level level, float x, float y, float velX, float velY, Area hitBox, Color color) {
+			super(level, x, y, hitBox);
 			this.velX = velX;
 			this.velY = velY;
 			this.color = color;

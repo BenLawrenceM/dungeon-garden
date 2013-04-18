@@ -3,13 +3,14 @@ package com.benlawrencem.game.dungeongarden.entity;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 
-import com.benlawrencem.game.dungeongarden.collision.HitBox;
+import com.benlawrencem.game.dungeongarden.collision.Area;
+import com.benlawrencem.game.dungeongarden.level.Level;
 
 public class ColorEntity extends Entity {
 	private Color color;
 
-	public ColorEntity(float x, float y, HitBox hitBox, Color color) {
-		super(x, y, hitBox);
+	public ColorEntity(Level level, float x, float y, Area hitBox, Color color) {
+		super(level, x, y, hitBox);
 		this.color = color;
 	}
 

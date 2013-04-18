@@ -3,7 +3,8 @@ package com.benlawrencem.game.dungeongarden.entity;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 
-import com.benlawrencem.game.dungeongarden.collision.CircularHitBox;
+import com.benlawrencem.game.dungeongarden.collision.CircularArea;
+import com.benlawrencem.game.dungeongarden.level.Level;
 
 public class Player extends MovableEntity {
 	private static enum Direction { UP, DOWN, LEFT, RIGHT, NONE };
@@ -19,12 +20,12 @@ public class Player extends MovableEntity {
 	private float diagonalMoveSpeed;
 	private Color color;
 
-	public Player(Color color) {
-		this(color, 0, 0);
+	public Player(Level level, Color color) {
+		this(level, color, 0, 0);
 	}
 
-	public Player(Color color, float x, float y) {
-		super(x, y, new CircularHitBox(20));
+	public Player(Level level, Color color, float x, float y) {
+		super(level, x, y, new CircularArea(20));
 		playerId = -1;
 		this.color = color;
 		horizontalDirection = Direction.NONE;

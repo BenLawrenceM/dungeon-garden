@@ -5,20 +5,20 @@ import org.newdawn.slick.Graphics;
 
 import com.benlawrencem.game.dungeongarden.entity.Entity;
 
-public abstract class HitBox {
-	public static enum Type { POINT, CIRCULAR, RECTANGULAR, POLYGON };
+public abstract class Area {
+	public static enum Type { POINT, CIRCULAR, RECTANGULAR, POLYGONAL };
 
 	private Entity parent;
 	private float offsetX;
 	private float offsetY;
 
-	public HitBox() {
+	public Area() {
 		parent = null;
 		this.offsetX = 0;
 		this.offsetY = 0;
 	}
 
-	public HitBox(float offsetX, float offsetY) {
+	public Area(float offsetX, float offsetY) {
 		parent = null;
 		this.offsetX = offsetX;
 		this.offsetY = offsetY;
@@ -56,9 +56,9 @@ public abstract class HitBox {
 		this.offsetY = offsetY;
 	}
 
-	public abstract boolean isCollidingWith(HitBox other);
+	public abstract boolean isCollidingWith(Area other);
 
-	public abstract boolean handleCollisionWith(HitBox other, float dislodgeWeight);
+	public abstract boolean handleCollisionWith(Area other, float dislodgeWeight);
 
 	public abstract Type getType();
 

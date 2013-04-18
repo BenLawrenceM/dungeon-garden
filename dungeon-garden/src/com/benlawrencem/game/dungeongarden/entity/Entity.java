@@ -2,29 +2,32 @@ package com.benlawrencem.game.dungeongarden.entity;
 
 import org.newdawn.slick.Graphics;
 
-import com.benlawrencem.game.dungeongarden.collision.HitBox;
+import com.benlawrencem.game.dungeongarden.collision.Area;
+import com.benlawrencem.game.dungeongarden.level.Level;
 
 public abstract class Entity {
-	private HitBox hitBox;
+	private Level level;
+	private Area hitBox;
 	private float x;
 	private float y;
 
-	public Entity() {
-		this(0, 0);
+	public Entity(Level level) {
+		this(level, 0, 0);
 	}
 
-	public Entity(float x, float y) {
-		this(0, 0, null);
+	public Entity(Level level, float x, float y) {
+		this(level, 0, 0, null);
 	}
 
-	public Entity(HitBox hitBox) {
-		this(0, 0, hitBox);
+	public Entity(Level level, Area hitBox) {
+		this(level, 0, 0, hitBox);
 	}
 
-	public Entity(float x, float y, HitBox hitBox) {
+	public Entity(Level level, float x, float y, Area hitBox) {
 		this.x = x;
 		this.y = y;
 		setHitBox(hitBox);
+		this.level = level;
 	}
 
 	public float getX() {
@@ -56,11 +59,11 @@ public abstract class Entity {
 		this.y = y;
 	}
 
-	public HitBox getHitBox() {
+	public Area getHitBox() {
 		return hitBox;
 	}
 
-	public void setHitBox(HitBox hitBox) {
+	public void setHitBox(Area hitBox) {
 		if(hitBox != null)
 			hitBox.setParent(this);
 		this.hitBox = hitBox;
@@ -111,6 +114,10 @@ public abstract class Entity {
 	public void applyBottomBound(float bottom) {
 		if(hitBox != null && hitBox.getBottom() > bottom)
 			adjustY(bottom - hitBox.getBottom());
+	}
+
+	public Level getLevel() {
+		return level;
 	}
 
 	public boolean isImmobile() {

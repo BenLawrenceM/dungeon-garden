@@ -8,9 +8,8 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 
 import com.benlawrencem.game.dungeongarden.DungeonGardenGame;
-import com.benlawrencem.game.dungeongarden.collision.PolygonHitBox;
+import com.benlawrencem.game.dungeongarden.entity.FrostTitan;
 import com.benlawrencem.game.dungeongarden.entity.Player;
-import com.benlawrencem.game.dungeongarden.entity.ColorEntity;
 import com.benlawrencem.game.dungeongarden.net.Client;
 import com.benlawrencem.game.dungeongarden.net.ClientListener;
 import com.benlawrencem.game.dungeongarden.net.message.Message;
@@ -21,29 +20,27 @@ public class BasicLevel implements Level, ClientListener {
 	private Player currPlayer;
 	private List<Player> players;
 	private boolean isConnected;
-	private ColorEntity widget;
+	private FrostTitan titan;
 
 	@Override
 	public void init() {
-		currPlayer = new Player(Color.black, 200, 200);
+		currPlayer = new Player(this, Color.black, 200, 200);
 		players = new ArrayList<Player>();
 		isConnected = false;
 		Client.getInstance().addListener(this);
 		Client.getInstance().connect("198.46.153.211", 9876);
-		widget = new ColorEntity(400, 400, new PolygonHitBox(
-				new float[] {200,0, 0,50, -100,25, -50,-100, 0,-500}),
-				Color.red);
+		titan = new FrostTitan(this, 300, 300);
 	}
 
 	@Override
 	public void update(int delta) {
-		//update widget
-		widget.update(delta);
-
 		//update players
 		for(Player player : players)
 			player.update(delta);
 		currPlayer.update(delta);
+
+		//update the frost titan
+		titan.update(delta);
 
 		//check player collisions
 		for(int i = 0; i < players.size(); i++) {
@@ -51,6 +48,12 @@ public class BasicLevel implements Level, ClientListener {
 				players.get(i).handleCollisionWith(players.get(j), 0.5f);
 			players.get(i).handleCollisionWith(currPlayer, 0.5f);
 		}
+
+		//check collisions with the frost titan
+		for(int i = 0; i < players.size(); i++) {
+			players.get(i).handleCollisionWith(titan, 1f);
+		}
+		currPlayer.handleCollisionWith(titan, 1f);
 
 		//keep players in bounds
 		for(Player player : players)
@@ -62,8 +65,8 @@ public class BasicLevel implements Level, ClientListener {
 	public void render(Graphics g) {
 		g.setBackground(Color.white);
 
-		//render widget
-		widget.render(g);
+		//render the frost titan
+		titan.render(g);
 
 		//render players
 		for(Player player : players)
@@ -133,7 +136,7 @@ public class BasicLevel implements Level, ClientListener {
 				}
 			}
 			if(player == null) {
-				player = new Player(calculatePlayerColor(playerUpdate.getPlayerId()));
+				player = new Player(this, calculatePlayerColor(playerUpdate.getPlayerId()));
 				player.setPlayerId(playerUpdate.getPlayerId());
 				players.add(player);
 			}

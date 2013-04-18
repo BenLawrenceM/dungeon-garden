@@ -1,38 +1,39 @@
 package com.benlawrencem.game.dungeongarden.entity;
 
-import com.benlawrencem.game.dungeongarden.collision.HitBox;
+import com.benlawrencem.game.dungeongarden.collision.Area;
+import com.benlawrencem.game.dungeongarden.level.Level;
 
 public abstract class MovableEntity extends Entity {
 	private float velX;
 	private float velY;
 
-	public MovableEntity() {
-		super();
+	public MovableEntity(Level level) {
+		super(level);
 		setVelocity(0, 0);
 	}
 
-	public MovableEntity(float x, float y) {
-		super(x, y);
+	public MovableEntity(Level level, float x, float y) {
+		super(level, x, y);
 		setVelocity(0, 0);
 	}
 
-	public MovableEntity(HitBox hitBox) {
-		super(hitBox);
+	public MovableEntity(Level level, Area hitBox) {
+		super(level, hitBox);
 		setVelocity(0, 0);
 	}
 
-	public MovableEntity(float x, float y, HitBox hitBox) {
-		super(x, y, hitBox);
+	public MovableEntity(Level level, float x, float y, Area hitBox) {
+		super(level, x, y, hitBox);
 		setVelocity(0, 0);
 	}
 
-	public MovableEntity(float x, float y, float velX, float velY) {
-		super(x, y);
+	public MovableEntity(Level level, float x, float y, float velX, float velY) {
+		super(level, x, y);
 		setVelocity(velX, velY);
 	}
 
-	public MovableEntity(float x, float y, float velX, float velY, HitBox hitBox) {
-		super(x, y, hitBox);
+	public MovableEntity(Level level, float x, float y, float velX, float velY, Area hitBox) {
+		super(level, x, y, hitBox);
 		setVelocity(velX, velY);
 	}
 

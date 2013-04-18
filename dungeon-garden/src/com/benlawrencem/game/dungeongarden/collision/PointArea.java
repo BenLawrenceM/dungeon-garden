@@ -3,17 +3,17 @@ package com.benlawrencem.game.dungeongarden.collision;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 
-public class PointHitBox extends HitBox {
-	public PointHitBox() {
+public class PointArea extends Area {
+	public PointArea() {
 		super();
 	}
 
-	public PointHitBox(float offsetX, float offsetY) {
+	public PointArea(float offsetX, float offsetY) {
 		super(offsetX, offsetY);
 	}
 
 	@Override
-	public boolean isCollidingWith(HitBox other) {
+	public boolean isCollidingWith(Area other) {
 		//two points are colliding if they are exactly on top of each other
 		if(other.getType() == Type.POINT) {
 			return getX() == other.getX() && getY() == other.getY();
@@ -21,7 +21,7 @@ public class PointHitBox extends HitBox {
 
 		//a point is intersecting a circle if the distance between the point and the circle's center is less than the circle's radius
 		if(other.getType() == Type.CIRCULAR) {
-			float radius = ((CircularHitBox) other).getRadius();
+			float radius = ((CircularArea) other).getRadius();
 			float horizontalDistance = other.getX() - getX();
 			float verticalDistance = other.getY() - getY();
 			float squareDistance = horizontalDistance * horizontalDistance + verticalDistance * verticalDistance;
@@ -42,7 +42,7 @@ public class PointHitBox extends HitBox {
 	}
 
 	@Override
-	public boolean handleCollisionWith(HitBox other, float dislodgeWeight) {
+	public boolean handleCollisionWith(Area other, float dislodgeWeight) {
 		//two points shouldn't be dislodged--the result is unpredictable
 		if(other.getType() == Type.POINT) {
 			return getX() == other.getX() && getY() == other.getY();
@@ -50,7 +50,7 @@ public class PointHitBox extends HitBox {
 
 		//move the point away from the center of the circle
 		if(other.getType() == Type.CIRCULAR) {
-			float radius = ((CircularHitBox) other).getRadius();
+			float radius = ((CircularArea) other).getRadius();
 			float horizontalDistance = other.getX() - getX();
 			float verticalDistance = other.getY() - getY();
 			float squareDistance = horizontalDistance * horizontalDistance + verticalDistance * verticalDistance;

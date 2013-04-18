@@ -3,15 +3,15 @@ package com.benlawrencem.game.dungeongarden.collision;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 
-public class CircularHitBox extends HitBox {
+public class CircularArea extends Area {
 	private float radius;
 
-	public CircularHitBox(float radius) {
+	public CircularArea(float radius) {
 		super();
 		setRadius(radius);
 	}
 
-	public CircularHitBox(float offsetX, float offsetY, float radius) {
+	public CircularArea(float offsetX, float offsetY, float radius) {
 		super(offsetX, offsetY);
 		setRadius(radius);
 	}
@@ -25,8 +25,8 @@ public class CircularHitBox extends HitBox {
 	}
 
 	@Override
-	public boolean isCollidingWith(HitBox other) {
-		if(other.getType() == Type.POINT || other.getType() == Type.RECTANGULAR || other.getType() == Type.POLYGON)
+	public boolean isCollidingWith(Area other) {
+		if(other.getType() == Type.POINT || other.getType() == Type.RECTANGULAR || other.getType() == Type.POLYGONAL)
 			return other.isCollidingWith(this); //avoids duplicate logic
 
 		//two circles are colliding if the distance between their centers is less than the sum of their radii
@@ -34,7 +34,7 @@ public class CircularHitBox extends HitBox {
 			float horizontalDistance = other.getX() - getX();
 			float verticalDistance = other.getY() - getY();
 			float squareDistance = horizontalDistance * horizontalDistance + verticalDistance * verticalDistance;
-			float radii = radius + ((CircularHitBox) other).getRadius();
+			float radii = radius + ((CircularArea) other).getRadius();
 			//same as saying the square distance between their centers is less than the squared sum of their radii
 			return (squareDistance < radii * radii);
 		}
@@ -43,8 +43,8 @@ public class CircularHitBox extends HitBox {
 	}
 
 	@Override
-	public boolean handleCollisionWith(HitBox other, float dislodgeWeight) {
-		if(other.getType() == Type.POINT || other.getType() == Type.RECTANGULAR || other.getType() == Type.POLYGON)
+	public boolean handleCollisionWith(Area other, float dislodgeWeight) {
+		if(other.getType() == Type.POINT || other.getType() == Type.RECTANGULAR || other.getType() == Type.POLYGONAL)
 			return other.handleCollisionWith(this, 1 - dislodgeWeight); //avoids duplicate logic
 
 		//handling a collision between two circles involves pushing each away from the other's center
@@ -52,7 +52,7 @@ public class CircularHitBox extends HitBox {
 			//two circles are colliding if the distance between their centers is less than the sum of their radii
 			float horizontalDistance = other.getX() - getX();
 			float verticalDistance = other.getY() - getY();
-			float radii = radius + ((CircularHitBox) other).getRadius();
+			float radii = radius + ((CircularArea) other).getRadius();
 			float squareDistance = horizontalDistance * horizontalDistance + verticalDistance * verticalDistance;
 
 			//same as saying the square distance between their centers is less than the squared sum of their radii
