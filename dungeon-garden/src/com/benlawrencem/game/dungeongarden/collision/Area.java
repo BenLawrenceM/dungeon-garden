@@ -62,12 +62,12 @@ public abstract class Area {
 	}
 
 	public boolean checkForHit(Area other) {
-		boolean intersecting = checkForIntersection(other, false);
-		if(intersecting) {
+		if(checkForIntersection(other, false)) {
 			getParent().onHit(other.getParent());
 			other.getParent().onHit(getParent());
+			return true;
 		}
-		return intersecting;
+		return false;
 	}
 
 	public boolean checkForCollision(Area other) {
@@ -76,6 +76,12 @@ public abstract class Area {
 	}
 
 	protected abstract boolean checkForIntersection(Area other, boolean callOnCollisionAfter);
+
+	protected void callOnCollision(Area other, float overlapX, float overlapY) {
+		float scalar = Entity.calculateCollisionScalar(getParent(), other.getParent());
+		getParent().onCollision(other.getParent(), overlapX * scalar, overlapY * scalar);
+		other.getParent().onCollision(getParent(), -overlapX * (1 - scalar), -overlapY * (1 - scalar));
+	}
 
 	public abstract Type getType();
 

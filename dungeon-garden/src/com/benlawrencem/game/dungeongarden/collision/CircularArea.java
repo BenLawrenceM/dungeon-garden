@@ -3,8 +3,6 @@ package com.benlawrencem.game.dungeongarden.collision;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 
-import com.benlawrencem.game.dungeongarden.entity.Entity;
-
 public class CircularArea extends Area {
 	private float radius;
 
@@ -49,16 +47,10 @@ public class CircularArea extends Area {
 			if(squareDistance < radii * radii) {
 				if(callOnCollisionAfter) {
 					//since the circles are intersecting, the overlap is the sum of their radii minus the distance between their centers
-					float scalar = Entity.calculateCollisionscalar(getParent(), other.getParent());
 					float distance = (float) Math.sqrt(squareDistance);
-					float xNorm = horizontalDistance / distance;
-					float yNorm = verticalDistance / distance;
-					getParent().onCollision(other.getParent(),
-							-xNorm * (radii - distance) * scalar,
-							-yNorm * (radii - distance) * scalar);
-					other.getParent().onCollision(getParent(),
-							xNorm * (radii - distance) * (1 - scalar),
-							yNorm * (radii - distance) * (1 - scalar));
+					float overlapX = -horizontalDistance / distance * (radii - distance);
+					float overlapY = -verticalDistance / distance * (radii - distance);
+					callOnCollision(other, overlapX, overlapY);
 				}
 				return true;
 			}

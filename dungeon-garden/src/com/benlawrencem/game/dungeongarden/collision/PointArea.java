@@ -3,8 +3,6 @@ package com.benlawrencem.game.dungeongarden.collision;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 
-import com.benlawrencem.game.dungeongarden.entity.Entity;
-
 public class PointArea extends Area {
 	public PointArea() {
 		super();
@@ -26,10 +24,8 @@ public class PointArea extends Area {
 		if(other.getType() == Type.POINT) {
 			if(getX() == other.getX() && getY() == other.getY()) {
 				//there's no good way to dislodge two points, so don't!
-				if(callOnCollisionAfter) {
-					getParent().onCollision(other.getParent(), 0, 0);
-					other.getParent().onCollision(getParent(), 0, 0);
-				}
+				if(callOnCollisionAfter)
+					callOnCollision(other, 0, 0);
 				return true;
 			}
 			return false;
@@ -46,16 +42,10 @@ public class PointArea extends Area {
 			if(squareDistance < radius * radius) {
 				//since they are intersecting, the overlap is the radius minus the distance from the point to the center of the circle
 				if(callOnCollisionAfter) {
-					float scalar = Entity.calculateCollisionscalar(getParent(), other.getParent());
 					float distance = (float) Math.sqrt(squareDistance);
-					float xNorm = horizontalDistance / distance;
-					float yNorm = verticalDistance / distance;
-					getParent().onCollision(other.getParent(),
-							-xNorm * (radius - distance) * scalar,
-							-yNorm * (radius - distance) * scalar);
-					other.getParent().onCollision(getParent(),
-							xNorm * (radius - distance) * (1 - scalar),
-							yNorm * (radius - distance) * (1 - scalar));
+					float overlapX = -horizontalDistance / distance * (radius - distance);
+					float overlapY = -verticalDistance / distance * (radius - distance);
+					callOnCollision(other, overlapX, overlapY);
 				}
 				return true;
 			}
@@ -67,7 +57,6 @@ public class PointArea extends Area {
 			if(other.getLeft() < getX() && getX() < other.getRight() && other.getTop() < getY() && getY() < other.getBottom()) {
 				//the point is overlapping an amount equal to the distance straight to the closest edge
 				if(callOnCollisionAfter) {
-					float scalar = Entity.calculateCollisionscalar(getParent(), other.getParent());
 					float distanceToLeft = getX() - other.getLeft();
 					float distanceToRight = other.getRight() - getX();
 					float distanceToTop = getY() - other.getTop();
@@ -91,8 +80,7 @@ public class PointArea extends Area {
 					else
 						overlapY = distanceToBottom;
 
-					getParent().onCollision(other.getParent(), overlapX * scalar, overlapY * scalar);
-					other.getParent().onCollision(getParent(), -overlapX * (1 - scalar), -overlapY * (1 - scalar));
+					callOnCollision(other, overlapX, overlapY);
 				}
 				return true;
 			}

@@ -3,8 +3,6 @@ package com.benlawrencem.game.dungeongarden.collision;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 
-import com.benlawrencem.game.dungeongarden.entity.Entity;
-
 public class RectangularArea extends Area {
 	private float width;
 	private float height;
@@ -59,7 +57,6 @@ public class RectangularArea extends Area {
 					|| (getTop() <= other.getTop() && other.getTop() < getBottom()))) {		//T=====t=-=-=B-----b
 				//the rectangles overlap an amount equal to the minimum overlap of their two axes
 				if(callOnCollisionAfter) {
-					float scalar = Entity.calculateCollisionscalar(getParent(), other.getParent());
 					float horizontalDistance = (getX() < other.getX() ? getRight() - other.getLeft() : other.getRight() - getLeft());
 					float verticalDistance = (getY() < other.getY() ? getBottom() - other.getTop() : other.getBottom() - getTop());
 					float overlapX = 0;
@@ -68,8 +65,7 @@ public class RectangularArea extends Area {
 						overlapX = (getX() < other.getX() ? -horizontalDistance : horizontalDistance);
 					else
 						overlapY = (getY() < other.getY() ? -verticalDistance : verticalDistance);
-					getParent().onCollision(other.getParent(), overlapX * scalar, overlapY * scalar);
-					other.getParent().onCollision(getParent(), -overlapX * (1 - scalar), -overlapY * (1 - scalar));
+					callOnCollision(other, overlapX, overlapY);
 				}
 				return true;
 			}
@@ -97,10 +93,8 @@ public class RectangularArea extends Area {
 			if(left <= otherX && otherX < right) {
 				if((otherTop <= top && top < otherBottom) || (top <= otherTop && otherTop < bottom)) {
 					if(callOnCollisionAfter) {
-						float scalar = Entity.calculateCollisionscalar(getParent(), other.getParent());
 						float overlapY = (y < otherY ? otherTop - bottom : otherBottom - top);
-						getParent().onCollision(other.getParent(), 0, overlapY * scalar);
-						other.getParent().onCollision(getParent(), 0, -overlapY * (1 - scalar));
+						callOnCollision(other, 0, overlapY);
 					}
 					return true;
 				}
@@ -111,10 +105,8 @@ public class RectangularArea extends Area {
 			if(top < otherY && otherY < bottom) {
 				if(((otherLeft <= left && left < otherRight) || (left <= otherLeft && otherLeft < right))) {
 					if(callOnCollisionAfter) {
-						float scalar = Entity.calculateCollisionscalar(getParent(), other.getParent());
 						float overlapX = (x < otherX ? otherLeft - right : otherRight - left);
-						getParent().onCollision(other.getParent(), overlapX * scalar, 0);
-						other.getParent().onCollision(getParent(), -overlapX * (1 - scalar), 0);
+						callOnCollision(other, overlapX, 0);
 					}
 					return true;
 				}
@@ -128,12 +120,10 @@ public class RectangularArea extends Area {
 			//same as saying the rectangle and circle are intersecting iff the SQUARE distance to the nearest rectangle corner is less than the circle's SQUARE radius
 			if(squareDistance < otherRadius * otherRadius) {
 				if(callOnCollisionAfter) {
-					float scalar = Entity.calculateCollisionscalar(getParent(), other.getParent());
 					float distance = (float) Math.sqrt(squareDistance);
 					float overlapX = horizontalDistance / distance * (otherRadius - distance);
 					float overlapY = verticalDistance / distance * (otherRadius - distance);
-					getParent().onCollision(other.getParent(), overlapX * scalar, overlapY * scalar);
-					other.getParent().onCollision(getParent(), -overlapX * (1 - scalar), -overlapY * (1 - scalar));
+					callOnCollision(other, overlapX, overlapY);
 				}
 				return true;
 			}

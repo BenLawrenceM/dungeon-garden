@@ -11,7 +11,7 @@ public abstract class Entity {
 	protected static final int COLLISION_WEIGHT_CLASS_HEAVY = 2;
 	protected static final int COLLISION_WEIGHT_CLASS_IMMOVABLE = 3;
 
-	public static float calculateCollisionscalar(Entity entity1, Entity entity2) {
+	public static float calculateCollisionScalar(Entity entity1, Entity entity2) {
 		if(entity1.getCollisionWeightClass() > entity2.getCollisionWeightClass())
 			return 0;
 		if(entity1.getCollisionWeightClass() < entity2.getCollisionWeightClass())
