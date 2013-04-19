@@ -57,25 +57,37 @@ public abstract class Area {
 	}
 
 	public boolean isIntersecting(Area other) {
-		boolean intersecting = checkForIntersection(other, false);
+		boolean intersecting = checkForIntersection(other, false, false);
 		return intersecting;
 	}
 
 	public boolean checkForHit(Area other) {
-		if(checkForIntersection(other, false)) {
-			getParent().onHit(other.getParent());
-			other.getParent().onHit(getParent());
-			return true;
-		}
-		return false;
+		return checkForHit(other, true);
 	}
 
-	public boolean checkForCollision(Area other) {
-		boolean intersecting = checkForIntersection(other, true);
+	public boolean checkForHit(Area other, boolean includeHitDirection) {
+		boolean intersecting = checkForIntersection(other, includeHitDirection, false);
+		if(intersecting && !includeHitDirection) {
+			getParent().onHit(other.getParent(), 0, 0);
+			other.getParent().onHit(getParent(), 0, 0);
+		}
 		return intersecting;
 	}
 
-	protected abstract boolean checkForIntersection(Area other, boolean callOnCollisionAfter);
+	public boolean checkForCollision(Area other) {
+		return checkForIntersection(other, false, true);
+	}
+
+	public boolean checkForHitAndCollision(Area other) {
+		return checkForIntersection(other, true, true);
+	}
+
+	protected abstract boolean checkForIntersection(Area other, boolean callOnHitAfter, boolean callOnCollisionAfter);
+
+	protected void callOnHit(Area other, float directionX, float directionY) {
+		getParent().onHit(other.getParent(), directionX, directionY);
+		other.getParent().onHit(getParent(), -directionX, -directionY);
+	}
 
 	protected void callOnCollision(Area other, float overlapX, float overlapY) {
 		float scalar = Entity.calculateCollisionScalar(getParent(), other.getParent());

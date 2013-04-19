@@ -27,7 +27,7 @@ public class LoadingState extends BasicGameState {
 
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
-		((GameplayState) game.getState(DungeonGardenGame.GAMEPLAY_STATE)).init(container, game, new CollisionTestLevel());
+		((GameplayState) game.getState(DungeonGardenGame.GAMEPLAY_STATE)).init(container, game, new ExampleBasicLevel());
 		game.enterState(DungeonGardenGame.GAMEPLAY_STATE);
 	}
 

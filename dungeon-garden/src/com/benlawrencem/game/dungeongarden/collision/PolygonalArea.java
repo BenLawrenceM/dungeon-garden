@@ -52,7 +52,7 @@ public class PolygonalArea extends Area {
 	}
 
 	@Override
-	protected boolean checkForIntersection(Area other, boolean callOnCollisionAfter) {
+	protected boolean checkForIntersection(Area other, boolean callOnHitAfter, boolean callOnCollisionAfter) {
 		//TODO fill out this function
 		return false;
 	}

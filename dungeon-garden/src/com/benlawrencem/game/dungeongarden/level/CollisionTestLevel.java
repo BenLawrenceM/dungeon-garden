@@ -15,13 +15,14 @@ import com.benlawrencem.game.dungeongarden.entity.Entity;
 public class CollisionTestLevel implements Level {
 	private List<SimpleEntity> entities;
 	private List<SimpleEntity> walls;
+	private static final boolean USE_FASTER_COLLISION_CHECKING = true; //no noticeable effect on performance
 
 	@Override
 	public void init() {
 		entities = new ArrayList<SimpleEntity>();
 		walls = new ArrayList<SimpleEntity>();
 
-		for(int i = 0; i < 350; i++) {
+		for(int i = 0; i < 200; i++) {
 			entities.add(rollNew());
 		}
 		for(int i = 0; i < 25; i++) {
@@ -89,20 +90,38 @@ public class CollisionTestLevel implements Level {
 
 		for(int i = 0; i < entities.size(); i++) {
 			for(int j = i + 1; j < entities.size(); j++) {
-				if(entities.get(i).isCollidingWith(entities.get(j))) {
-					entities.get(i).setColor(Color.red);
-					entities.get(j).setColor(Color.red);
-					entities.get(i).checkForCollision(entities.get(j));
+				if(USE_FASTER_COLLISION_CHECKING) {
+					if(entities.get(i).checkForHitAndCollision(entities.get(j))) {
+						entities.get(i).setColor(Color.red);
+						entities.get(j).setColor(Color.red);
+					}
+				}
+				else {
+					if(entities.get(i).isCollidingWith(entities.get(j))) {
+						entities.get(i).setColor(Color.red);
+						entities.get(j).setColor(Color.red);
+						entities.get(i).checkForHit(entities.get(j), true);
+						entities.get(i).checkForCollision(entities.get(j));
+					}
 				}
 			}
 		}
 
 		for(int i = 0; i < entities.size(); i++) {
 			for(int j = 0; j < walls.size(); j++) {
-				if(entities.get(i).isCollidingWith(walls.get(j))) {
-					entities.get(i).setColor(Color.red);
-					walls.get(j).setColor(Color.blue);
-					entities.get(i).checkForCollision(walls.get(j));
+				if(USE_FASTER_COLLISION_CHECKING) {
+					if(entities.get(i).checkForHitAndCollision(walls.get(j))) {
+						entities.get(i).setColor(Color.red);
+						walls.get(j).setColor(Color.blue);
+					}
+				}
+				else {
+					if(entities.get(i).isCollidingWith(walls.get(j))) {
+						entities.get(i).setColor(Color.red);
+						walls.get(j).setColor(Color.blue);
+						entities.get(i).checkForHit(walls.get(j), true);
+						entities.get(i).checkForCollision(walls.get(j));
+					}
 				}
 			}
 		}
@@ -121,15 +140,22 @@ public class CollisionTestLevel implements Level {
 		private float velY;
 		private Color color;
 		private boolean isWall;
+		private float hitX;
+		private float hitY;
+		private float collideX;
+		private float collideY;
 
 		public SimpleEntity(Level level, float x, float y, float velX, float velY, Area hitBox, Color color, boolean isWall) {
 			super(level, x, y);
-			setHitArea(hitBox);
-			setCollisionArea(hitBox);
+			setHitAndCollisionArea(hitBox);
 			this.velX = velX;
 			this.velY = velY;
 			this.color = color;
 			this.isWall = isWall;
+			hitX = 0;
+			hitY = 0;
+			collideX = 0;
+			collideY = 0;
 		}
 
 		public void setColor(Color color) {
@@ -140,19 +166,33 @@ public class CollisionTestLevel implements Level {
 		public void update(int delta) {
 			adjustX(velX * delta/1000);
 			adjustY(velY * delta/1000);
+			hitX = 0;
+			hitY = 0;
+			collideX = 0;
+			collideY = 0;
 		}
 
 		@Override
 		public void render(Graphics g) {
 			if(getHitArea() != null)
 				getHitArea().render(g, color);
-			g.setColor(Color.white);
-			//g.drawArc(getX() - 5, getY() - 5, 10, 10, 0, 360);
+			g.setColor(Color.yellow);
+			g.drawLine(getX(), getY(), getX() + hitX, getY() + hitY);
+			g.setColor(Color.green);
+			g.drawLine(getX() + 1, getY() + 1, getX() + 1 + collideX, getY() + 1 + collideY);
 		}
 
 		@Override
-		public void onHit(Entity other) {
-			
+		public void onHit(Entity other, float directionX, float directionY) {
+			hitX = 20 * directionX;
+			hitY = 20 * directionY;
+		}
+
+		@Override
+		public void onCollision(Entity other, float overlapX, float overlapY) {
+			super.onCollision(other, overlapX, overlapY);
+			collideX = 40 * overlapX;
+			collideY = 40 * overlapY;
 		}
 
 		@Override

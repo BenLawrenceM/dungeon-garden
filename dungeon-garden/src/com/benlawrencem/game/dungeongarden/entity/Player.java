@@ -25,7 +25,8 @@ public class Player extends MovableEntity {
 	}
 
 	public Player(Level level, Color color, float x, float y) {
-		super(level, x, y, new CircularArea(20));
+		super(level, x, y);
+		setHitAndCollisionArea(new CircularArea(20));
 		playerId = -1;
 		this.color = color;
 		horizontalDirection = Direction.NONE;
@@ -146,7 +147,7 @@ public class Player extends MovableEntity {
 	}
 
 	@Override
-	public void onHit(Entity other) {
+	public void onHit(Entity other, float directionX, float directionY) {
 		
 	}
 }

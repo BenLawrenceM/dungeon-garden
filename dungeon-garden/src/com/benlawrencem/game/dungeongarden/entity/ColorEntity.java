@@ -36,7 +36,7 @@ public class ColorEntity extends Entity {
 	}
 
 	@Override
-	public void onHit(Entity other) {
+	public void onHit(Entity other, float directionX, float directionY) {
 		
 	}
 }

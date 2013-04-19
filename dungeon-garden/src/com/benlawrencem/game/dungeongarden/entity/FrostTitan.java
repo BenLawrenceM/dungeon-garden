@@ -16,10 +16,9 @@ public class FrostTitan extends MovableEntity {
 	private float targetX;
 	private float targetY;
 
-	private static enum Direction { NONE, UP, DOWN, LEFT, RIGHT, UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT };
-
 	public FrostTitan(Level level, float x, float y) {
-		super(level, x, y, new RectangularArea(0, 20, 100, 130));
+		super(level, x, y);
+		setHitAndCollisionArea(new RectangularArea(0, 20, 100, 130));
 		targetX = x;
 		targetY = y;
 		try {
@@ -54,64 +53,11 @@ public class FrostTitan extends MovableEntity {
 		updatePositionBasedOnVelocity(delta);
 	}
 
-	private Direction getDirection() {
-		float x = getVelX();
-		float y = getVelY();
-		if(x == 0) {
-			if(y == 0)
-				return Direction.NONE;
-			else if(y > 0)
-				return Direction.DOWN;
-			else
-				return Direction.UP;
-		}
-		else if(x > 0) {
-			if(y == 0)
-				return Direction.RIGHT;
-			else if(y > 0) {
-				if(x / y > 2.414)
-					return Direction.RIGHT;
-				else if(y / x > 2.414)
-					return Direction.DOWN;
-				else
-					return Direction.DOWN_RIGHT;
-			}
-			else {
-				if(x / -y > 2.414)
-					return Direction.RIGHT;
-				else if(-y / x > 2.414)
-					return Direction.UP;
-				else
-					return Direction.UP_RIGHT;
-			}
-		}
-		else {
-			if(y == 0)
-				return Direction.LEFT;
-			else if(y > 0) {
-				if(-x / y > 2.414)
-					return Direction.LEFT;
-				else if(y / -x > 2.414)
-					return Direction.DOWN;
-				else
-					return Direction.DOWN_LEFT;
-			}
-			else {
-				if(x / y > 2.414)
-					return Direction.LEFT;
-				else if(y / x > 2.414)
-					return Direction.UP;
-				else
-					return Direction.UP_LEFT;
-			}
-		}
-	}
-
 	@Override
 	public void render(Graphics g) {
 		//this.getHitBox().render(g, Color.red);
 		Animation anim;
-		switch(getDirection()) {
+		switch(getMovementDirection()) {
 			case LEFT:
 				anim = walkLeft;
 				break;
@@ -144,7 +90,7 @@ public class FrostTitan extends MovableEntity {
 	}
 
 	@Override
-	public void onHit(Entity other) {
+	public void onHit(Entity other, float directionX, float directionY) {
 		
 	}
 }

@@ -15,6 +15,7 @@ public class DungeonGardenGame extends StateBasedGame {
 		AppGameContainer app = new AppGameContainer(new DungeonGardenGame());
 		app.setAlwaysRender(true);
 		app.setDisplayMode(800, 600, false);
+		app.setMaximumLogicUpdateInterval(40);
 		app.start();
 	}
 

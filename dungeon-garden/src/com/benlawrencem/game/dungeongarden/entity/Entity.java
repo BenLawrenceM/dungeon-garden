@@ -6,6 +6,11 @@ import com.benlawrencem.game.dungeongarden.collision.Area;
 import com.benlawrencem.game.dungeongarden.level.Level;
 
 public abstract class Entity {
+	protected static final int RENDER_LAYER_BACKGROUND = 0;
+	protected static final int RENDER_LAYER_STAGE = 1;
+	protected static final int RENDER_LAYER_FOREGROUND = 2;
+	protected static final int RENDER_LAYER_SCREEN = 3;
+	protected static final int RENDER_LAYER_INTERFACE = 4;
 	protected static final int COLLISION_WEIGHT_CLASS_LIGHT = 0;
 	protected static final int COLLISION_WEIGHT_CLASS_MEDIUM = 1;
 	protected static final int COLLISION_WEIGHT_CLASS_HEAVY = 2;
@@ -22,6 +27,7 @@ public abstract class Entity {
 	private Level level;
 	private Area hitArea;
 	private Area collisionArea;
+	private boolean usingHitAreaForCollisions;
 	private float x;
 	private float y;
 
@@ -33,6 +39,9 @@ public abstract class Entity {
 		this.level = level;
 		this.x = x;
 		this.y = y;
+		hitArea = null;
+		collisionArea = null;
+		usingHitAreaForCollisions = true;
 	}
 
 	public float getX() {
@@ -64,6 +73,14 @@ public abstract class Entity {
 		this.y = y;
 	}
 
+	public int getRenderLayer() {
+		return Entity.RENDER_LAYER_STAGE;
+	}
+
+	public float getRenderDepth() {
+		return getBottom();
+	}
+
 	public Area getHitArea() {
 		return hitArea;
 	}
@@ -72,6 +89,30 @@ public abstract class Entity {
 		if(hitArea != null)
 			hitArea.setParent(this);
 		this.hitArea = hitArea;
+		usingHitAreaForCollisions = false;
+	}
+
+	public Area getCollisionArea() {
+		return collisionArea;
+	}
+
+	public void setCollisionArea(Area collisionArea) {
+		if(collisionArea != null)
+			collisionArea.setParent(this);
+		this.collisionArea = collisionArea;
+		usingHitAreaForCollisions = false;
+	}
+
+	public void setHitAndCollisionArea(Area area) {
+		if(area != null)
+			area.setParent(this);
+		hitArea = area;
+		collisionArea = area;
+		usingHitAreaForCollisions = true;
+	}
+
+	protected boolean isUsingHitAreaForCollisions() {
+		return usingHitAreaForCollisions;
 	}
 
 	private boolean canHit(Entity other) {
@@ -94,17 +135,13 @@ public abstract class Entity {
 		return false;
 	}
 
-	public abstract void onHit(Entity other);
-
-	public Area getCollisionArea() {
-		return collisionArea;
+	public boolean checkForHit(Entity other, boolean includeDirection) {
+		if(getHitArea() != null && other.getHitArea() != null && canHit(other))
+			return getHitArea().checkForHit(other.getHitArea(), includeDirection);
+		return false;
 	}
 
-	public void setCollisionArea(Area collisionArea) {
-		if(collisionArea != null)
-			collisionArea.setParent(this);
-		this.collisionArea = collisionArea;
-	}
+	public abstract void onHit(Entity other, float directionX, float directionY);
 
 	private boolean canCollideWith(Entity other) {
 		return getCollisionPrecedence(other) + other.getCollisionPrecedence(this) > 0;
@@ -126,9 +163,28 @@ public abstract class Entity {
 		return false;
 	}
 
+	public boolean checkForHitAndCollision(Entity other) {
+		if(isUsingHitAreaForCollisions() && other.isUsingHitAreaForCollisions()) {
+			if(getHitArea() != null && other.getHitArea() != null && canHit(other)) {
+				if(canCollideWith(other))
+					return getHitArea().checkForHitAndCollision(other.getHitArea());
+				else
+					return getHitArea().checkForHit(other.getHitArea());
+			}
+			else if(getCollisionArea() != null && other.getCollisionArea() != null && canCollideWith(other))
+				return getCollisionArea().checkForCollision(other.getCollisionArea());
+			return false;
+		}
+		else {
+			boolean hitting = checkForHit(other);
+			boolean colliding = checkForCollision(other);
+			return hitting || colliding;
+		}
+	}
+
 	public void onCollision(Entity other, float overlapX, float overlapY) {
-		adjustX(overlapX);
-		adjustY(overlapY);
+		adjustX(-overlapX);
+		adjustY(-overlapY);
 	}
 
 	public abstract void update(int delta);
@@ -163,18 +219,26 @@ public abstract class Entity {
 	}
 
 	public float getTop() {
+		if(collisionArea == null)
+			return getY();
 		return collisionArea.getTop();
 	}
 
 	public float getBottom() {
+		if(collisionArea == null)
+			return getY();
 		return collisionArea.getBottom();
 	}
 
 	public float getLeft() {
+		if(collisionArea == null)
+			return getX();
 		return collisionArea.getLeft();
 	}
 
 	public float getRight() {
+		if(collisionArea == null)
+			return getX();
 		return collisionArea.getRight();
 	}
 

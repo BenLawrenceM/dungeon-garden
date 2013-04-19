@@ -19,11 +19,16 @@ public class PointArea extends Area {
 	}
 
 	@Override
-	protected boolean checkForIntersection(Area other, boolean callOnCollisionAfter) {
+	protected boolean checkForIntersection(Area other, boolean callOnHitAfter, boolean callOnCollisionAfter) {
+		if(other.getType() == Type.POLYGONAL)
+			return other.checkForIntersection(this, callOnHitAfter, callOnCollisionAfter); //avoid duplicate logic
+
 		//two points are intersecting if they are exactly on top of one other
 		if(other.getType() == Type.POINT) {
 			if(getX() == other.getX() && getY() == other.getY()) {
 				//there's no good way to dislodge two points, so don't!
+				if(callOnHitAfter)
+					callOnHit(other, 0, 0);
 				if(callOnCollisionAfter)
 					callOnCollision(other, 0, 0);
 				return true;
@@ -41,11 +46,14 @@ public class PointArea extends Area {
 			//same as saying a point is intersecting a circle if the SQUARE distance from the point to the center of the circle is less than the SQUARE radius
 			if(squareDistance < radius * radius) {
 				//since they are intersecting, the overlap is the radius minus the distance from the point to the center of the circle
-				if(callOnCollisionAfter) {
+				if(callOnHitAfter || callOnCollisionAfter) {
 					float distance = (float) Math.sqrt(squareDistance);
-					float overlapX = -horizontalDistance / distance * (radius - distance);
-					float overlapY = -verticalDistance / distance * (radius - distance);
-					callOnCollision(other, overlapX, overlapY);
+					float directionX = horizontalDistance / distance;
+					float directionY = verticalDistance / distance;
+					if(callOnHitAfter)
+						callOnHit(other, directionX, directionY);
+					if(callOnCollisionAfter)
+						callOnCollision(other, directionX * (radius - distance), directionY * (radius - distance));
 				}
 				return true;
 			}
@@ -56,31 +64,44 @@ public class PointArea extends Area {
 		if(other.getType() == Type.RECTANGULAR) {
 			if(other.getLeft() < getX() && getX() < other.getRight() && other.getTop() < getY() && getY() < other.getBottom()) {
 				//the point is overlapping an amount equal to the distance straight to the closest edge
-				if(callOnCollisionAfter) {
+				if(callOnHitAfter || callOnCollisionAfter) {
 					float distanceToLeft = getX() - other.getLeft();
 					float distanceToRight = other.getRight() - getX();
 					float distanceToTop = getY() - other.getTop();
 					float distanceToBottom = other.getBottom() - getY();
+					float directionX = 0;
+					float directionY = 0;
 					float overlapX = 0;
 					float overlapY = 0;
 
 					//the point is closest to the left edge
-					if(distanceToLeft < distanceToRight && distanceToLeft < distanceToTop && distanceToLeft < distanceToBottom)
-						overlapX = -distanceToLeft;
+					if(distanceToLeft < distanceToRight && distanceToLeft < distanceToTop && distanceToLeft < distanceToBottom) {
+						overlapX = distanceToLeft;
+						directionX = (overlapX > 0 ? 1 : -1);
+					}
 
 					//the point is closest to the right edge
-					else if(distanceToRight < distanceToTop && distanceToRight < distanceToBottom)
-						overlapX = distanceToRight;
+					else if(distanceToRight < distanceToTop && distanceToRight < distanceToBottom) {
+						overlapX = -distanceToRight;
+						directionX = (overlapX > 0 ? 1 : -1);
+					}
 
 					//the point is closest to the top edge
-					else if(distanceToTop < distanceToBottom)
-						overlapY = -distanceToTop;
+					else if(distanceToTop < distanceToBottom) {
+						overlapY = distanceToTop;
+						directionY = (overlapY > 0 ? 1 : -1);
+					}
 
 					//the point is closest to the bottom edge
-					else
-						overlapY = distanceToBottom;
+					else {
+						overlapY = -distanceToBottom;
+						directionY = (overlapY > 0 ? 1 : -1);
+					}
 
-					callOnCollision(other, overlapX, overlapY);
+					if(callOnHitAfter)
+						callOnHit(other, directionX, directionY);
+					if(callOnCollisionAfter)
+						callOnCollision(other, overlapX, overlapY);
 				}
 				return true;
 			}
