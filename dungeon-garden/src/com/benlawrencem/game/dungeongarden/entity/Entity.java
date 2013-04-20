@@ -115,7 +115,7 @@ public abstract class Entity {
 		return usingHitAreaForCollisions;
 	}
 
-	private boolean canHit(Entity other) {
+	protected boolean canHit(Entity other) {
 		return getHitPrecedence(other) + other.getHitPrecedence(this) > 0;
 	}
 
@@ -143,7 +143,7 @@ public abstract class Entity {
 
 	public abstract void onHit(Entity other, float directionX, float directionY);
 
-	private boolean canCollideWith(Entity other) {
+	protected boolean canCollideWith(Entity other) {
 		return getCollisionPrecedence(other) + other.getCollisionPrecedence(this) > 0;
 	}
 
@@ -248,9 +248,5 @@ public abstract class Entity {
 
 	public int getCollisionWeightClass() {
 		return Entity.COLLISION_WEIGHT_CLASS_MEDIUM;
-	}
-
-	public boolean isImmobile() {
-		return true;
 	}
 }

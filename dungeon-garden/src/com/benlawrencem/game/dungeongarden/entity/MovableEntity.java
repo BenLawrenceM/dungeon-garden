@@ -127,9 +127,4 @@ public abstract class MovableEntity extends Entity {
 			return Direction.NONE;
 		return lastMovementDirection;
 	}
-
-	@Override
-	public boolean isImmobile() {
-		return false;
-	}
 }
